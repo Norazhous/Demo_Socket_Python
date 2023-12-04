@@ -34,6 +34,10 @@ const store = createStore({
         state.receivedData = data; 
     },
 
+    WEBSOCKET_CLOSE(state,data){
+      state.receivedData = null; 
+  },
+
 
 
 
@@ -56,8 +60,11 @@ const store = createStore({
         this.state.websocket.onmessage =function(callBack){
             commit("WEBSOCKET_REIVE",callBack.data);
             
-            
+        };
+        this.state.websocket.onclose = function(){
+           commit("WEBSOCKET_CLOSE")
         }
+
     },
 
     WEBSOCKET_REIVE_ACTION({commit},sendData){
