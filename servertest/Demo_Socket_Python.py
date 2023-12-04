@@ -8,10 +8,14 @@ import asyncio
 import websockets
 import json
 import threading
-
-from Simulation_Test import Va,Ca,Vb,Cb,time
-
+import time
 import datetime
+
+from Simulation_Test import Va,Ca,Vb,Cb
+
+
+
+# permit_user = False
 
 # async def display_date():
 #     loop = asyncio.get_running_loop()
@@ -35,36 +39,45 @@ import datetime
 #             print("check_client failed ...")
 #             break
 
+# regularly send message to client(2s), the loop will break until check client failed
 async def send_data(ws):
     while True:
         try:
+            # if permit_check == True:
             print("send check...")
             data_info ={}
             data = json.loads(json.dumps(data_info))
 
-            concentration = {"va": Va,"vb":Vb}
-            data['concentration'] = concentration
-            va = {"name": "va", "value": Va}
-            data['concentration']['va'] = va
-            vb = {"name": "vb", "value": Vb}
-            data['concentration']['vb'] = vb
+            currenttime = {"currentTime":time.ctime()}
+            data['time'] = currenttime
 
-            volume =  {"ca":Ca,"cb":Cb}
+            volume = {"va": Va,"vb":Vb}
             data['volume'] = volume
+            va = {"name": "va", "value": Va}
+            data['volume']['va'] = va
+            vb = {"name": "vb", "value": Vb}
+            data['volume']['vb'] = vb
+
+            concentration =  {"ca":Ca,"cb":Cb}
+            data['concentration'] = concentration
             ca = {"name": "ca", "value": Ca}
-            data['volume']['ca'] = ca
+            data['concentration']['ca'] = ca
             cb = {"name": "cb", "value": Cb}
-            data['volume']['cb'] = cb
+            data['concentration']['cb'] = cb
 
             dataPh = json.dumps(data,ensure_ascii= False)
             await ws.send(dataPh)
-        #     await ws.send("cmd:aaaa")
             await asyncio.sleep(2)
+            # elif permit_check ==False: 
+            #     print("permit not yet approved",permit_user)
+            #     await asyncio.sleep(5)
+            # else:
+            #     print('check client failed')
         except:
             print("check client failed")
             break
 
-    # await websocket.send(json.dumps(dataPh))
+    # await websocket.send(json.dumps(dataPh)) 
     
         
 
@@ -72,7 +85,7 @@ async def send_data(ws):
 websocket_users = set()
 
 
-# 检测客户端权限，用户名密码通过才能退出循环
+# 检测客户端权限，用户名密码通过才能退出循环 
 async def check_user_permit(websocket):
     print("new websocket_users:", websocket)
     websocket_users.add(websocket)
@@ -84,6 +97,8 @@ async def check_user_permit(websocket):
             response_str = "Congratulation, you have connect with server..."
             await websocket.send(response_str)
             print("Password is ok...")
+            # permit_user = True
+            # print(permit_user)
             return True
         else:
             response_str = "Sorry, please input the username or password..."
@@ -105,11 +120,8 @@ async def recv_user_msg(websocket):
 async def run(websocket, path):
     while True:
         try:
-            asyncio.gather(send_data(websocket))
-            # asyncio.gather(check_client(websocket))
             await check_user_permit(websocket)
-            # asyncio.create_task(send_data(websocket))
-            # await send_data(websocket)
+            asyncio.gather(send_data(websocket)) # asyncio.gather(func1(),func2()) can gather different function and run together # seems just can be run once
             await recv_user_msg(websocket)
         except websockets.ConnectionClosed:
             print("ConnectionClosed...", path)    # 链接断开
