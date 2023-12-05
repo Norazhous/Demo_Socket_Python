@@ -7,8 +7,11 @@
     <br />
     <label>消息</label>
     <input type="text" id="mes" value="123456"/>
-    <button @click="sendMeg();">发送</button>
-    <button @click="connect()">connect</button>
+    <br />
+    <br>
+    <button @click="connect()" >connect</button>
+    <button @click="disconnect()">disconnect</button>
+    <button @click="sendMeg();">sendMsg</button>
     <button @click="getData()">getdata</button>
     <br>
     <br>
@@ -64,7 +67,8 @@ export default {
     mounted() {
         this.connect();
     },
-    watch: {
+    watch() {
+        this.currenttime();
     },
     computed: {
         websockMsg() {
@@ -89,6 +93,16 @@ export default {
             } else {
                 alert("The browser is not support WebSocket");
             }
+        },
+        disconnect(){
+            if (this.$store.state.websocket.readyState=== WebSocket.OPEN){
+                this.$store.dispatch('WEBSOCKET_CLOSE')
+                console.log("closing...")
+            }
+            else{
+                console.log("already closed")
+            }
+            
         },
         sendMeg() {
             let message = document.getElementById("name").value + ":" + document.getElementById("mes").value;

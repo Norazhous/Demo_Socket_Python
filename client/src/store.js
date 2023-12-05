@@ -7,7 +7,7 @@ const store = createStore({
   state() {
     return {
       count: 0,
-      currenttime:null,
+      currenttime: null,
       ca: 0.02,
       cb: 0.01,
       va: 0.01,
@@ -31,9 +31,9 @@ const store = createStore({
     },
     GETCA(state) {
       return state.ca
-      
+
     },
-    GETTIME(state){
+    GETTIME(state) {
       return state.currenttime
     }
   },
@@ -51,8 +51,18 @@ const store = createStore({
       state.receivedData = data;
     },
 
-    WEBSOCKET_CLOSE(state, data) {
-      state.receivedData = null;
+    WEBSOCKET_CLOSE(state) {
+      // state.receivedData = null; // clear the data send
+      state.websocket.close();
+    },
+
+    JsonPARSE(state) {
+      try {
+        JSON.parse(state.receivedData);
+      }
+      catch (error) {
+        console.log('Error parsing JSON:', error, state.receivedData);
+      }
     },
 
     SETCA(state) {
@@ -85,14 +95,24 @@ const store = createStore({
 
       };
       this.state.websocket.onmessage = function (callBack) {
-        commit("WEBSOCKET_REIVE", callBack.data); 
+        commit("WEBSOCKET_REIVE", callBack.data);
+        commit('JsonPARSE')
+        if(callBack.data != null){
         commit("SETCA");
         commit("SETTIME");
+        }
+        else{
+          console.log('callBack data is null')
+        }
+
       };
       this.state.websocket.onclose = function () {
         commit("WEBSOCKET_CLOSE")
       }
+    },
 
+    WEBSOCKET_CLOSE(context) {
+      context.commit('WEBSOCKET_CLOSE');
     },
 
     WEBSOCKET_REIVE_ACTION({ commit }, sendData) {
@@ -101,7 +121,7 @@ const store = createStore({
       this.state.websocket.send(msg);
     },
 
-    GETDATA(context){
+    GETDATA(context) {
       context.commit("SETCA");
       context.commit("SETTIME");
     }

@@ -11,10 +11,10 @@ import threading
 import time
 import datetime
 
-from Simulation_Test import Va,Ca,Vb,Cb
+from Simulation_Test import x,Va,Ca,Vb,Cb,ka1,ka2,ka3,Kw,CALCU
 
 
-
+# counter()
 # permit_user = False
 
 # async def display_date():
@@ -64,6 +64,9 @@ async def send_data(ws):
             data['concentration']['ca'] = ca
             cb = {"name": "cb", "value": Cb}
             data['concentration']['cb'] = cb
+
+            calculation = {"ka1":ka1,"ka2":ka2,"ka3":ka3}
+            data['calculation'] =calculation
 
             dataPh = json.dumps(data,ensure_ascii= False)
             await ws.send(dataPh)
@@ -120,7 +123,7 @@ async def recv_user_msg(websocket):
 async def run(websocket, path):
     while True:
         try:
-            await check_user_permit(websocket)
+            # await check_user_permit(websocket)
             asyncio.gather(send_data(websocket)) # asyncio.gather(func1(),func2()) can gather different function and run together # seems just can be run once
             await recv_user_msg(websocket)
         except websockets.ConnectionClosed:
